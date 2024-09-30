@@ -2,10 +2,11 @@ const fs = require("fs"); // Importing fs to allow us to use it.
 const readline = require('readline-sync');  // Import readline-sync for synchronous input
 
 const outputFile = "./checking_password_log.txt";
+const inputFile = "./common_passwords.txt"
 
 
 // No need for a comment as the function name is self-describing.
-function getCurrentDateTimeFormatted() {
+function getCurrentDateTimeFormatted(password) {
   const currentDate = new Date();
 
   const day = String(currentDate.getDate()).padStart(2, '0');
@@ -14,14 +15,16 @@ function getCurrentDateTimeFormatted() {
   const hours = String(currentDate.getHours()).padStart(2, '0');
   const minutes = String(currentDate.getMinutes()).padStart(2, '0');
   const seconds = String(currentDate.getSeconds()).padStart(2, '0');
+  let scrambled = storePassword(password)
 
-  return `${day}-${month}-${year} ${hours}:${minutes}:${seconds}`;
+  return `${day}-${month}-${year} ${hours}:${minutes}:${seconds}  ${scrambled}`;
 }
 
 function readInFile(filename){
+  const data = fs.readFileSync(filename, "utf-8");
+  const lines = data.split(/\n/);
 
-
-  return "nothing at the moment, change this line";
+  return lines
 }
 
 const passwordCriteria = {
@@ -64,13 +67,20 @@ function getPasswordFromUser() {
     const password = readline.question("Please enter your password: ", {
         hideEchoBack: true  // Masks the password input for privacy
     });
-    const currentDateTime = getCurrentDateTimeFormatted();
+    const currentDateTime = getCurrentDateTimeFormatted(password);
     fs.appendFileSync(outputFile, `${currentDateTime}\n`, "utf-8");
 
     const strength = getPasswordStrength(password);
     console.log(`Password strength: ${strength}`);
 
-    if (strength === "Strong") {
+    let isValid = true
+    for (x of poorPasswords) {
+      if (x === password) {
+        isValid = false;
+      } 
+    }
+
+    if (isValid) {
         console.log("Your password is strong.");
     } else {
         console.log("Password does not meet the criteria. Please enter a different password.");
@@ -78,11 +88,18 @@ function getPasswordFromUser() {
     }
 }
 
+function storePassword(userPassword) {
+  let first2Letters = userPassword.substring(0,2);
+  let middleLetters = userPassword.substring(2, userPassword.length-2);
+  let last2Letters = userPassword.substring(userPassword.length-2,);
+  return jumbledPassword = last2Letters + middleLetters + first2Letters;
+}
+
 // End of functions
 
 
 // Call a function to read in the data from a file.
-const poorPasswords = readInFile(outputFile); 
+const poorPasswords = readInFile(inputFile);
 
 // Enter code to read in the 25 most common passwords from the text file here.
 getPasswordFromUser();
